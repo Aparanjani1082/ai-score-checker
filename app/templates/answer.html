@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI Score Checker</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #243b55;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .page-wrapper {
+            margin-top: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+
+        /* 🔝 TOP BAR */
+        .top-nav {
+            background: #2c3e50;
+            padding: 10px 16px;
+            border-radius: 10px;
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .nav-btn {
+            background: #48647e;
+            color: white;
+            padding: 8px 14px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            transition: 0.25s;
+        }
+
+        .nav-btn:hover {
+            background: #1abc9c;
+        }
+
+        .danger {
+            background: #e74c3c;
+        }
+
+        .danger:hover {
+            background: #c0392b;
+        }
+
+        .login {
+            background: #1abc9c;
+        }
+
+        .login:hover {
+            background: #16a085;
+        }
+
+        /* 🤖 AI SCORE CHECKER TITLE (BLACK + SHADOW ANIMATION) */
+        .ai-title {
+            font-size: 30px;
+            font-weight: bold;
+            color: #000;
+            margin-bottom: 8px;
+            animation: shadowPulse 2.2s ease-in-out infinite, popIn 0.6s ease;
+        }
+
+        @keyframes shadowPulse {
+            0% {
+                text-shadow: 0 0 0 rgba(0,0,0,0.25);
+            }
+            50% {
+                text-shadow: 0 6px 14px rgba(0,0,0,0.45);
+            }
+            100% {
+                text-shadow: 0 0 0 rgba(0,0,0,0.25);
+            }
+        }
+
+        @keyframes popIn {
+            from {
+                opacity: 0;
+                transform: translateY(-6px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 📦 MAIN CARD */
+        .card {
+            background: white;
+            width: 600px;
+            padding: 30px;
+            border-radius: 16px;
+            text-align: center;
+            color: #111;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+        }
+
+        .subject {
+            font-size: 20px;
+            margin-bottom: 15px;
+        }
+
+        /* 📝 TEXTAREA */
+        textarea {
+            width: 95%;
+            height: 260px;
+            padding: 16px;
+            font-size: 16px;
+
+            border-top: 1px solid #ccc;
+            border-left: 1px solid #ccc;
+            border-bottom: 1px solid #ccc;
+            border-right: 0.5px solid #ccc;
+
+            border-radius: 12px;
+            outline: none;
+            resize: none;
+            transition: all 0.25s ease;
+        }
+
+        textarea:focus {
+            border-top: 2px solid #606a95;
+            border-left: 2px solid #606a95;
+            border-bottom: 2px solid #606a95;
+            border-right: 1px solid #606a95;
+            box-shadow: 0 0 8px rgba(74,108,247,0.35);
+        }
+
+        /* 🎛 BUTTON ROW */
+        .actions {
+            margin-top: 18px;
+            display: flex;
+            justify-content: center;
+            gap: 14px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-size: 15px;
+            background: #4CAF50;
+            transition: 0.25s;
+        }
+
+        .btn:hover {
+            background: #68bd6d;
+        }
+        .stop-btn {
+            background: #e74c3c;
+        }
+
+        .stop-btn:hover {
+            background: #c0392b;
+        }
+
+    </style>
+</head>
+
+<body>
+
+<div class="page-wrapper">
+
+    <!-- 🔝 TOP BAR -->
+    <div class="top-nav">
+        <a href="{% url 'home' %}" class="nav-btn">🏠 Home</a>
+        <button class="nav-btn" onclick="clearText()">🧹 Clear Text</button>
+        <a href="{% url 'history' %}" class="nav-btn">📜 History</a>
+
+        {% if user.username == "guest" %}
+            <a href="{% url 'login' %}" class="nav-btn login">🔐 Login</a>
+        {% else %}
+            <a href="{% url 'logout' %}" class="nav-btn danger">🚪 Logout</a>
+        {% endif %}
+    </div>
+
+    <!-- 📦 AI SCORE CHECKER BOX -->
+    <div class="card">
+        <h2 class="ai-title">🤖 AI Score Checker</h2>
+        <div class="subject">Subject: <b>{{ subject }}</b></div>
+
+        <form method="POST" action="{% url 'check_score' %}">
+            {% csrf_token %}
+            <input type="hidden" name="subject" value="{{ subject }}">
+
+            <textarea id="answerBox" name="answer" placeholder="Type or speak your answer here..." required></textarea>
+
+            <div class="actions">
+                <button type="button" id="micBtn" class="btn" onclick="startSpeech()"> 🎤 Voice Input</button>
+                <button type="button" id="stopBtn" class="btn stop-btn" onclick="stopSpeech()" disabled> 🎧 Stop Listening</button>
+                <button type="submit" class="btn">🔍 Check Score</button>
+            </div>
+        </form>
+    </div>
+
+</div>
+
+<script>
+let recognition;  // global reference
+
+function startSpeech() {
+    const micBtn = document.getElementById("micBtn");
+    const stopBtn = document.getElementById("stopBtn");
+
+    recognition = new webkitSpeechRecognition();
+    recognition.lang = "en-US";
+    recognition.continuous = true;
+
+    micBtn.innerText = "🎙 Listening...";
+    micBtn.disabled = true;
+    stopBtn.disabled = false;
+
+    recognition.start();
+
+    recognition.onresult = function(event) {
+        document.querySelector("textarea").value +=
+            " " + event.results[event.results.length - 1][0].transcript;
+    };
+
+    recognition.onend = resetButtons;
+    recognition.onerror = resetButtons;
+}
+function clearText() {
+    document.getElementById("answerBox").value = "";
+}
+
+function stopSpeech() {
+    if (recognition) {
+        recognition.stop();
+    }
+}
+
+function resetButtons() {
+    document.getElementById("micBtn").innerText = "🎤 Voice Input";
+    document.getElementById("micBtn").disabled = false;
+    document.getElementById("stopBtn").disabled = true;
+}
+</script>
+</body>
+</html>

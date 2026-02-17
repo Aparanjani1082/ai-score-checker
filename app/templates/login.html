@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login | AI Score Checker</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to right, #141e30, #243b55);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            width: 380px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            background: #243b55;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #141e30;
+        }
+
+        .link {
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        .link a {
+            color: #243b55;
+            text-decoration: none;
+        }
+
+        .link a:hover {
+            text-decoration: underline;
+        }
+
+        .error {
+            color: red;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="card">
+    <h2>AI Score Checker</h2>
+
+    {% if error %}
+        <p class="error">{{ error }}</p>
+    {% endif %}
+
+    <!-- ✅ LOGIN FORM -->
+    <form method="POST" action="{% url 'login' %}">
+        {% csrf_token %}
+
+        <input type="text" name="username" placeholder="Username" required>
+        <input type="password" name="password" placeholder="Password" required>
+
+        <button type="submit">Login</button>
+    </form>
+
+    <div class="link">
+        <a href="{% url 'signup' %}">Create New Account</a><br><br>
+        <a href="{% url 'guest' %}">Continue as Guest</a>
+    </div>
+</div>
+
+</body>
+</html>

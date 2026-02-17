@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Result | AI Score Checker</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #141e30;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .result-card {
+            background: white;
+            width: 420px;
+            padding: 30px;
+            border-radius: 14px;
+            text-align: center;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+            animation: fadeUp 0.6s ease;
+            position: relative;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 { margin-bottom: 15px; }
+
+        /* ⭐ NORMAL SCORE */
+        .score {
+            font-size: 36px;
+            font-weight: bold;
+            color: #4a6cf7;
+        }
+
+        /* ✨ PERFECT SCORE TEXT */
+        .perfect-text {
+            font-size: 28px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            margin-bottom: 6px;
+
+            background: linear-gradient(
+                90deg,
+                #d4af37,
+                #ffd700,
+                #fff3a0,
+                #ffd700,
+                #d4af37
+            );
+            background-size: 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+
+            animation: shimmer 2.5s linear infinite,
+                       glow 1.4s ease-in-out infinite alternate;
+        }
+
+        /* 🏆 GOLDEN 100 / 100 */
+        .perfect-score {
+            font-size: 42px;
+            font-weight: bold;
+            background: linear-gradient(
+                90deg,
+                #f8e647,
+                #fee65f,
+                #fff3a0,
+                #fee65f,
+                #e3e355
+            );
+            background-size: 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shimmer 2.5s linear infinite,
+                       glow 1.4s ease-in-out infinite alternate;
+        }
+
+        @keyframes shimmer {
+            from { background-position: 0%; }
+            to   { background-position: 300%; }
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 6px rgba(219, 199, 87, 0.6); }
+            to   { text-shadow: 0 0 16px rgb(219, 199, 87); }
+        }
+
+        .level {
+            margin: 10px 0;
+            font-size: 18px;
+        }
+
+        /* 🎉 CONFETTI */
+        .confetti {
+            position: fixed;
+            top: -10px;
+            width: 10px;
+            height: 14px;
+            opacity: 0.9;
+            animation: fall linear forwards;
+            z-index: 9999;
+        }
+
+        @keyframes fall {
+            to {
+                transform: translateY(110vh) rotate(360deg);
+            }
+        }
+
+        /* ✅ Progress bar */
+        .progress {
+            width: 100%;
+            height: 16px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+
+        .progress-bar {
+            height: 100%;
+            animation: fillBar 1.2s ease forwards;
+        }
+
+        @keyframes fillBar {
+            from { width: 0%; }
+            to   { width: var(--final-width); }
+        }
+
+        .low    { background: #e74c3c; }
+        .medium { background: #f1c40f; }
+        .high   { background: #2ecc71; }
+
+        .message {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #555;
+        }
+
+        /* 🔒 Guest blur */
+        .blur {
+            filter: blur(5px);
+            opacity: 0.6;
+        }
+
+        .login-msg {
+            margin-top: 20px;
+            padding: 15px;
+            background: #fff3cd;
+            border-radius: 10px;
+            color: #856404;
+        }
+
+        .login-btn {
+            display: inline-block;
+            margin-top: 10px;
+            background: #1abc9c;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+        }
+
+        .buttons {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            background: #4CAF50;
+            color: white;
+            text-decoration: none;
+        }
+
+        .btn:hover { background: #68bd6d; }
+    </style>
+</head>
+
+<body>
+
+{% if is_perfect and not is_guest %}
+<script>
+function launchConfetti() {
+    const colors = ["#f1c40f", "#e74c3c", "#2ecc71", "#3498db", "#9b59b6"];
+
+    for (let i = 0; i < 120; i++) {
+        const confetti = document.createElement("div");
+        confetti.className = "confetti";
+
+        confetti.style.left = Math.random() * 100 + "vw";
+        confetti.style.backgroundColor =
+            colors[Math.floor(Math.random() * colors.length)];
+        confetti.style.animationDuration =
+            Math.random() * 3 + 2 + "s";
+
+        confetti.style.width = Math.random() * 8 + 6 + "px";
+        confetti.style.height = Math.random() * 12 + 8 + "px";
+
+        document.body.appendChild(confetti);
+        setTimeout(() => confetti.remove(), 5000);
+    }
+}
+
+window.onload = launchConfetti;
+</script>
+{% endif %}
+
+<div class="result-card">
+
+    <h1>🎯 Result</h1>
+
+    <!-- SCORE -->
+    <div class="{% if is_guest %}blur{% endif %}">
+
+        {% if score == 100 and not is_guest %}
+            <div class="perfect-text"><h3>PERFECT SCORE </h3></div>
+            <div class="perfect-score">100 / 100</div>
+        {% else %}
+            <div class="score">{{ score|default:"--" }} / 100</div>
+        {% endif %}
+
+        <div class="level">
+            Level: <b>{{ level|default:"--" }}</b>
+        </div>
+
+        <div class="progress">
+            <div class="progress-bar {{ bar_class }}"
+                 style="--final-width: {{ score|default:0 }}%;"></div>
+        </div>
+    </div>
+
+    {% if is_guest %}
+        <div class="login-msg">
+            🔒 <b>Please login to check your score</b>
+            <p>Guest users can preview the app, but scoring is available only after login.</p>
+            <a href="{% url 'login' %}" class="login-btn">Login Now</a>
+        </div>
+    {% else %}
+        <p class="message">🤖 {{ feedback }}</p>
+    {% endif %}
+
+    <div class="buttons">
+        <a href="{% url 'answer_page' %}" class="btn">🔄 Try Again</a>
+        <a href="{% url 'home' %}" class="btn">🏠 Home</a>
+    </div>
+
+</div>
+
+</body>
+</html>
